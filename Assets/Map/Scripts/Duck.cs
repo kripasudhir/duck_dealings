@@ -7,7 +7,7 @@ public class Duck : Character
     public int DeathByThousandPecks()
     {
         // Using C#'s Random instead of ThreadLocalRandom
-        int damage = 100000 * Random.Shared.Next(100, 1001);
+        int damage = 100000 * UnityEngine.Random.Range(100, 1001);;
         ChangeStamina(damage);
         return damage;
     }
