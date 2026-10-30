@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class BattleManager : MonoBehaviour
 {
@@ -8,6 +9,10 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private TMP_Text turtleHpText;
     [SerializeField] private TMP_Text battleLog;
     [SerializeField] private TestDuckMovement duckMovement;
+    [SerializeField] private GameObject deathPanel;
+    [SerializeField] private Transform respawnPoint;
+    [SerializeField] private UnityEvent onWin;
+    [SerializeField] private UnityEvent onRetry;
     private Duck duck;
     private Turtle turtle;
     private bool inBattle;
@@ -88,14 +93,41 @@ public class BattleManager : MonoBehaviour
         {
             battleLog.text += "\nYOU WIN!";
             inBattle = false;
+            Invoke(nameof(WinBattle), 2f);
             return true;
         }
         else if(duck.GetHP() <= 0)
         {
             battleLog.text += "\nYOU LOSE!";
             inBattle = false;
+            Invoke(nameof(LoseBattle), 2f);
             return true;
         }
         else { return false; }
+    }
+    private void WinBattle()
+    {
+        battlePanel.SetActive(false);
+        ExitBattleMode();
+        onWin.Invoke();
+    }
+    private void LoseBattle()
+    {
+        battlePanel.SetActive(false);
+        deathPanel.SetActive(true);
+    }
+    public void Retry()
+    {
+        deathPanel.SetActive(false);
+        duckMovement.transform.position = respawnPoint.position;
+        duckMovement.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        ExitBattleMode();
+        onRetry.Invoke();
+    }
+    private void ExitBattleMode()
+    {
+        duckMovement.enabled = true;
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 }

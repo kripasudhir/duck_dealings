@@ -14,4 +14,8 @@ public class BossZone : MonoBehaviour
             onPlayerEnter.Invoke();
         }
     }
+    public void ResetZone()
+    {
+        triggered = false;
+    }
 }
