@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.UI;
 
 public class BattleManager : MonoBehaviour
 {
@@ -13,13 +14,33 @@ public class BattleManager : MonoBehaviour
     [SerializeField] private Transform respawnPoint;
     [SerializeField] private UnityEvent onWin;
     [SerializeField] private UnityEvent onRetry;
+    [SerializeField] private GameObject mainCamera;
+    [SerializeField] private GameObject battleCamera;
+    [SerializeField] private GameObject battleGrid;
+    [SerializeField] private Transform duckBattlePos;
+    [SerializeField] private Image duckHpBar;
+    [SerializeField] private Image turtleHpBar;
+    [SerializeField] private TMP_Text duckDamageText;
+    [SerializeField] private TMP_Text turtleDamageText;
     private Duck duck;
     private Turtle turtle;
     private bool inBattle;
+    private int duckMaxHp;
+    private int turtleMaxHp;
     public void StartBattle() 
     {
         duck = new Duck(1_000_000_000);
         turtle = new Turtle();
+        duckMaxHp = duck.GetHP();
+        turtleMaxHp = turtle.GetHP();
+        mainCamera.SetActive(false);
+        battleCamera.SetActive(true);
+        battleGrid.SetActive(true);
+        duckMovement.transform.position = duckBattlePos.position;
+        duckMovement.GetComponent<Rigidbody>().linearVelocity = Vector3.zero;
+        duckMovement.transform.rotation = duckBattlePos.rotation;
+        duckDamageText.text = "";
+        turtleDamageText.text = "";
         battlePanel.SetActive(true);
         duckMovement.enabled = false;
         Cursor.lockState = CursorLockMode.None;
@@ -32,12 +53,26 @@ public class BattleManager : MonoBehaviour
     {
         duckHpText.text = "Duck HP: " + duck.GetHP().ToString("N0");
         turtleHpText.text = "Turtie HP: " + turtle.GetHP().ToString("N0");
+        duckHpBar.fillAmount = (float)duck.GetHP() / duckMaxHp;
+        turtleHpBar.fillAmount = (float)turtle.GetHP() / turtleMaxHp;
+    }
+    private void ShowDamage(TMP_Text target, int damage)
+    {
+        target.text = "-" + damage.ToString("N0") + " HP";
+        CancelInvoke(nameof(ClearDamage));
+        Invoke(nameof(ClearDamage), 1f);
+    }
+    private void ClearDamage()
+    {
+        duckDamageText.text = "";
+        turtleDamageText.text = "";
     }
     public void UsePecks()
     {
         if (!inBattle) return;
         int damage = duck.DeathByThousandPecks();
         turtle.TakeDamage(damage);
+        ShowDamage(turtleDamageText, damage);
         battleLog.text = "Duck used Thousand Pecks! " + damage.ToString("N0") + " damage!";
         UpdateTexts();
         if (CheckEnd()) return;
@@ -48,6 +83,7 @@ public class BattleManager : MonoBehaviour
         if (!inBattle) return;
         int damage = duck.SonicQuack();
         turtle.TakeDamage(damage);
+        ShowDamage(turtleDamageText, damage);
         battleLog.text = "Duck used Sonic Quack! " + damage.ToString("N0") + " damage!";
         UpdateTexts();
         if (CheckEnd()) return;
@@ -58,6 +94,7 @@ public class BattleManager : MonoBehaviour
         if (!inBattle) return;
         int damage = duck.FlamingFlippers();
         turtle.TakeDamage(damage);
+        ShowDamage(turtleDamageText, damage);
         battleLog.text = "Duck used Flaming Flippers! " + damage.ToString("N0") + " damage!";
         UpdateTexts();
         if (CheckEnd()) return;
@@ -68,6 +105,7 @@ public class BattleManager : MonoBehaviour
         if (!inBattle) return;
         int damage = duck.BillBash();
         turtle.TakeDamage(damage);
+        ShowDamage(turtleDamageText, damage);
         battleLog.text = "Duck used Bill Bash! " + damage.ToString("N0") + " damage!";
         UpdateTexts();
         if (CheckEnd()) return;
@@ -83,6 +121,7 @@ public class BattleManager : MonoBehaviour
         else if (roll < 69) { damage = turtle.TestudineTumble(); moveName = "Testudine Tumble"; }
         else { damage = turtle.SlowStabbing(); moveName = "Slow Stabbing"; }
         duck.TakeDamage(damage);
+        ShowDamage(duckDamageText, damage);
         battleLog.text += "\nTurtie used " + moveName + "! " + damage.ToString("N0") +" damage!";
         UpdateTexts();
         CheckEnd();
@@ -129,5 +168,8 @@ public class BattleManager : MonoBehaviour
         duckMovement.enabled = true;
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
+        battleCamera.SetActive(false);
+        battleGrid.SetActive(false);
+        mainCamera.SetActive(true);
     }
 }
